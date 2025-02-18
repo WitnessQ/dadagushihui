@@ -22,3 +22,65 @@
     font-size: 0.9rem; /* 介绍文字大小 */
     color: #333; /* 介绍文字颜色 */
 }
+/* 导航栏美化 */
+header {
+    background-color: #333; /* 导航栏背景颜色 */
+    color: #fff; /* 文字颜色 */
+    padding: 10px 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem; /* 标题字体大小 */
+}
+
+nav ul {
+    list-style: none; /* 去掉列表默认样式 */
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    gap: 20px; /* 导航项之间的间距 */
+}
+
+nav ul li {
+    display: inline-block;
+}
+
+nav ul li a {
+    text-decoration: none; /* 去掉下划线 */
+    color: #fff; /* 导航文字颜色 */
+    font-size: 1rem; /* 导航文字大小 */
+    padding: 10px 15px; /* 内边距 */
+    transition: background-color 0.3s ease; /* 鼠标悬停效果 */
+}
+
+nav ul li a:hover {
+    background-color: #555; /* 鼠标悬停时的背景颜色 */
+}
+
+/* 图片画廊样式 */
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.gallery-item {
+    width: 48%;
+    text-align: center;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.gallery-item p {
+    font-size: 0.9rem;
+    color: #333;
+}
