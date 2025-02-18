@@ -58,3 +58,27 @@ footer {
     width: 100%;
     bottom: 0;
 }
+/* 图片画廊布局 */
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px; /* 图片之间的间距 */
+}
+
+.gallery-item {
+    width: 48%; /* 每个图片项占48%宽度，留出一些间距 */
+    text-align: center; /* 文本居中对齐 */
+}
+
+.gallery-item img {
+    width: 100%; /* 图片宽度自适应容器 */
+    height: auto; /* 保持图片比例 */
+    display: block;
+    margin-bottom: 10px; /* 图片与介绍之间的间距 */
+}
+
+.gallery-item p {
+    font-size: 0.9rem; /* 介绍文字大小 */
+    color: #333; /* 介绍文字颜色 */
+}
