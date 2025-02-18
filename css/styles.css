@@ -1,39 +1,54 @@
-/* 导航栏美化 */
+/* 全局样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
 header {
-    background-color: #333; /* 导航栏背景颜色 */
-    color: #fff; /* 文字颜色 */
-    padding: 10px 0;
-    text-align: center;
+    background: #333;
+    color: #fff;
+    padding-top: 30px;
+    min-height: 70px;
+    border-bottom: #555 3px solid;
 }
 
 header h1 {
+    float: left;
     margin: 0;
-    font-size: 2rem; /* 标题字体大小 */
 }
 
-nav ul {
-    list-style: none; /* 去掉列表默认样式 */
+header nav {
+    float: right;
+}
+
+header nav ul {
+    list-style: none;
+    margin: 0;
     padding: 0;
-    margin: 0;
-    display: flex;
-    justify-content: center; /* 水平居中 */
-    gap: 20px; /* 导航项之间的间距 */
 }
 
-nav ul li {
+header nav ul li {
     display: inline-block;
+    margin-left: 20px;
 }
 
-nav ul li a {
-    text-decoration: none; /* 去掉下划线 */
-    color: #fff; /* 导航文字颜色 */
-    font-size: 1rem; /* 导航文字大小 */
-    padding: 10px 15px; /* 内边距 */
-    transition: background-color 0.3s ease; /* 鼠标悬停效果 */
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 16px;
 }
 
-nav ul li a:hover {
-    background-color: #555; /* 鼠标悬停时的背景颜色 */
+header nav ul li a:hover {
+    color: #ccc;
 }
 
 /* 图片画廊样式 */
@@ -42,6 +57,7 @@ nav ul li a:hover {
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 20px;
+    padding: 20px;
 }
 
 .gallery-item {
@@ -59,4 +75,15 @@ nav ul li a:hover {
 .gallery-item p {
     font-size: 0.9rem;
     color: #333;
+}
+
+/* 页脚样式 */
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
 }
