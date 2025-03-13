@@ -3,49 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>哒哒故事绘</title>
+    <title>我的艺术书架</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* 新增书架样式 */
+        .bookshelf {
+            background: #f5e6d3;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .shelf {
+            position: relative;
+            margin: 0 auto 60px;
+            width: 90%;
+            padding: 30px 20px;
+            background: #d4c1a7;
+            border-radius: 5px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .shelf::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: #b8a38d;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .book-row {
+            display: flex;
+            gap: 30px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+
+        .book-item {
+            flex: 0 0 200px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .book-item:hover {
+            transform: translateY(-10px);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 250px;
+            background: #fff;
+            border-radius: 3px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .book-title {
+            text-align: center;
+            margin-top: 10px;
+            color: #5a4a3a;
+            font-weight: 600;
+        }
+
+        /* 导航栏保持不变 */
+        header {
+            position: relative;
+            z-index: 100;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>哒哒故事绘</h1>
-            <nav>
-                <ul>
-                    <li><a href="index.html">首页</a></li>
-                    <li><a href="about.html">关于我</a></li>
-                    <li><a href="gallery.html">画廊</a></li>
-                    <li><a href="contact.html">联系我</a></li>
-                </ul>
-            </nav>
-        </div>
+        <h1>我的艺术书架</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">首页</a></li>
+                <li><a href="about.html">关于我</a></li>
+                <li><a href="gallery.html">画廊</a></li>
+                <li><a href="contact.html">联系我</a></li>
+            </ul>
+        </nav>
     </header>
-    <main>
-        <section>
-            <h2>最新作品</h2>
-            <p>这里展示我的最新作品。</p>
-            <div class="gallery">
-                <div class="gallery-item">
-                    <img src="images/图片1.jpg" alt="作品1">
-                    <p>新修缮的柳州联华印刷厂。</p>
+    
+    <div class="bookshelf">
+        <!-- 第1层 -->
+        <div class="shelf">
+            <div class="book-row">
+                <!-- 重复这个book-item结构添加更多作品 -->
+                <div class="book-item">
+                    <a href="artwork1.html" target="_blank">
+                        <div class="book-cover">
+                            <img src="images/placeholder1.jpg" alt="作品1">
+                        </div>
+                        <div class="book-title">作品1</div>
+                    </a>
                 </div>
-                <div class="gallery-item">
-                    <img src="images/图片2.png" alt="作品2">
-                    <p>印刷厂成立。</p>
-                </div>
-                <div class="gallery-item">
-                    <img src="images/图片3.jpg" alt="作品3">
-                    <p>经费紧张情况下同心协力购置印刷机器。</p>
-                </div>
-                <div class="gallery-item">
-                    <img src="images/图片4.jpg" alt="作品4">
-                    <p>印刷厂支持学生运动。</p>
-                </div>
+                <!-- 添加更多作品 -->
             </div>
-        </section>
-    </main>
+        </div>
+
+        <!-- 第2层 -->
+        <div class="shelf">
+            <div class="book-row">
+                <!-- 内容结构同上 -->
+            </div>
+        </div>
+
+        <!-- 第3层 -->
+        <div class="shelf">
+            <div class="book-row">
+                <!-- 内容结构同上 -->
+            </div>
+        </div>
+
+        <!-- 第4层 -->
+        <div class="shelf">
+            <div class="book-row">
+                <!-- 内容结构同上 -->
+            </div>
+        </div>
+    </div>
+
     <footer>
-        <p>&copy; 2025 哒哒故事绘</p>
+        <p>&copy; 2023 我的艺术书架</p>
     </footer>
 </body>
 </html>
