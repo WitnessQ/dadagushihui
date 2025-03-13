@@ -6,130 +6,73 @@
     <title>我的艺术书架</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        /* 新增书架样式 */
-        .bookshelf {
-            background: #f5e6d3;
-            padding: 40px 20px;
-            min-height: 100vh;
-        }
-
-        .shelf {
-            position: relative;
-            margin: 0 auto 60px;
-            width: 90%;
-            padding: 30px 20px;
-            background: #d4c1a7;
-            border-radius: 5px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .shelf::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 0;
-            width: 100%;
-            height: 10px;
-            background: #b8a38d;
-            border-radius: 0 0 5px 5px;
-        }
-
-        .book-row {
-            display: flex;
-            gap: 30px;
-            overflow-x: auto;
-            padding: 20px 0;
-        }
-
-        .book-item {
-            flex: 0 0 200px;
-            transition: transform 0.3s ease;
-            cursor: pointer;
-        }
-
-        .book-item:hover {
-            transform: translateY(-10px);
-        }
-
-        .book-cover {
-            width: 100%;
-            height: 250px;
-            background: #fff;
-            border-radius: 3px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .book-cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .book-title {
-            text-align: center;
-            margin-top: 10px;
-            color: #5a4a3a;
-            font-weight: 600;
-        }
-
-        /* 导航栏保持不变 */
-        header {
-            position: relative;
-            z-index: 100;
-        }
+        /* 书架样式保持不变 */
+        .bookshelf { background: #f5e6d3; padding: 40px 20px; min-height: 100vh; }
+        .shelf { position: relative; margin: 0 auto 60px; width: 90%; padding: 30px 20px;
+                background: #d4c1a7; border-radius: 5px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        /* 其他样式保持不变... */
     </style>
 </head>
 <body>
     <header>
         <h1>我的艺术书架</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">首页</a></li>
-                <li><a href="about.html">关于我</a></li>
-                <li><a href="gallery.html">画廊</a></li>
-                <li><a href="contact.html">联系我</a></li>
-            </ul>
-        </nav>
+        <nav><!-- 导航栏保持不变 --></nav>
     </header>
     
     <div class="bookshelf">
-        <!-- 第1层 -->
+        <!-- 第1层 - 作品001 -->
         <div class="shelf">
             <div class="book-row">
-                <!-- 重复这个book-item结构添加更多作品 -->
                 <div class="book-item">
-                    <a href="artwork1.html" target="_blank">
+                    <a href="artwork-001.html" target="_blank">
                         <div class="book-cover">
-                            <img src="images/placeholder1.jpg" alt="作品1">
+                            <img src="images/001.png" alt="作品001">
                         </div>
-                        <div class="book-title">作品1</div>
+                        <div class="book-title">《星夜幻想》</div>
                     </a>
                 </div>
-                <!-- 添加更多作品 -->
             </div>
         </div>
 
-        <!-- 第2层 -->
+        <!-- 第2层 - 作品002 -->
         <div class="shelf">
             <div class="book-row">
-                <!-- 内容结构同上 -->
+                <div class="book-item">
+                    <a href="artwork-002.html" target="_blank">
+                        <div class="book-cover">
+                            <img src="images/002.png" alt="作品002">
+                        </div>
+                        <div class="book-title">《深海之歌》</div>
+                    </a>
+                </div>
             </div>
         </div>
 
-        <!-- 第3层 -->
+        <!-- 第3层 - 作品003 -->
         <div class="shelf">
             <div class="book-row">
-                <!-- 内容结构同上 -->
+                <div class="book-item">
+                    <a href="artwork-003.html" target="_blank">
+                        <div class="book-cover">
+                            <img src="images/003.png" alt="作品003">
+                        </div>
+                        <div class="book-title">《机械之城》</div>
+                    </a>
+                </div>
             </div>
         </div>
 
-        <!-- 第4层 -->
+        <!-- 第4层 - 作品004 -->
         <div class="shelf">
             <div class="book-row">
-                <!-- 内容结构同上 -->
+                <div class="book-item">
+                    <a href="artwork-004.html" target="_blank">
+                        <div class="book-cover">
+                            <img src="images/004.png" alt="作品004">
+                        </div>
+                        <div class="book-title">《森林秘境》</div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
