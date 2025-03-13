@@ -87,3 +87,19 @@ footer {
     width: 100%;
     bottom: 0;
 }
+/* 基础样式增强 */
+body {
+    background: #f5f0eb;
+    margin: 0;
+    font-family: 'Microsoft YaHei', sans-serif;
+}
+
+.book-row::-webkit-scrollbar {
+    height: 8px;
+    background: rgba(0,0,0,0.1);
+}
+
+.book-row::-webkit-scrollbar-thumb {
+    background: #b8a38d;
+    border-radius: 4px;
+}
