@@ -103,3 +103,18 @@ body {
     background: #b8a38d;
     border-radius: 4px;
 }
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .shelf {
+        width: 95%;
+        padding: 20px 10px;
+    }
+    
+    .book-item {
+        flex: 0 0 150px;
+    }
+    
+    .book-cover {
+        height: 200px;
+    }
+}
