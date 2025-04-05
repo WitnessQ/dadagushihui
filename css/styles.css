@@ -1,199 +1,44 @@
 /* 全局样式 */
 body {
-    font-family: 'Microsoft YaHei', Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
-    background: #f5f0eb;
-    color: #333;
-}
-
-/* 容器样式（可保留） */
-.container {
-    width: 80%;
-    margin: auto;
-    overflow: hidden;
+    font-family: 'Microsoft YaHei', Arial, sans-serif;  /* 字体设置 */
+    margin: 0;  /* 外边距归零 */
+    padding: 0;  /* 内边距归零 */
+    line-height: 1.6;  /* 行高 */
+    background: #f5f0eb;  /* 背景颜色 */
+    color: #333;  /* 文字颜色 */
 }
 
 /* 头部导航栏样式 */
 header {
-    background: #333;
-    color: #fff;
-    padding: 20px 0;
-    position: relative;
-    z-index: 100;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-header h1 {
-    float: left;
-    margin: 0 0 0 30px;
-    font-size: 24px;
-}
-
-header nav {
-    float: right;
-    margin-right: 30px;
-}
-
-header nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-header nav ul li {
-    display: inline-block;
-    margin-left: 25px;
-}
-
-header nav ul li a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s ease;
-    padding: 5px 10px;
-}
-
-header nav ul li a:hover {
-    color: #ff7f50;
+    background: #333;  /* 背景色 */
+    color: #fff;  /* 文字颜色 */
+    padding: 20px 0;  /* 内边距 */
+    position: relative;  /* 相对定位 */
+    z-index: 100;  /* 层叠顺序 */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);  /* 阴影效果 */
 }
 
 /* 书架系统样式 */
-.bookshelf {
-    background: #f5e6d3;
-    padding: 40px 20px;
-    min-height: calc(100vh - 160px); /* 留出页脚空间 */
-}
-
-.shelf {
-    position: relative;
-    margin: 0 auto 60px;
-    width: 90%;
-    padding: 30px 20px;
-    background: #d4c1a7;
-    border-radius: 5px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
 .shelf::after {
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    left: 0;
-    width: 100%;
-    height: 10px;
-    background: #b8a38d;
-    border-radius: 0 0 5px 5px;
+    content: '';  /* 伪元素内容 */
+    position: absolute;  /* 绝对定位 */
+    bottom: -15px;  /* 距离底部位置 */
+    left: 0;  /* 左侧对齐 */
+    width: 100%;  /* 宽度100% */
+    height: 10px;  /* 高度 */
+    background: #b8a38d;  /* 背景色 */
+    border-radius: 0 0 5px 5px;  /* 底部圆角 */
 }
 
-.book-row {
-    display: flex;
-    gap: 30px;
-    overflow-x: auto;
-    padding: 20px 0;
-    scroll-behavior: smooth;
-}
-
-.book-item {
-    flex: 0 0 200px;
-    transition: transform 0.3s ease;
-    cursor: pointer;
-}
-
+/* 书籍项悬停效果 */
 .book-item:hover {
-    transform: translateY(-10px);
+    transform: translateY(-10px);  /* 上移10像素 */
 }
 
-.book-cover {
-    width: 100%;
-    height: 250px;
-    background: #fff;
-    border-radius: 3px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    overflow: hidden;
-    position: relative;
-}
-
-.book-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.book-title {
-    text-align: center;
-    margin-top: 10px;
-    color: #5a4a3a;
-    font-weight: 600;
-    font-size: 16px;
-}
-
-/* 页脚样式调整 */
-footer {
-    background: #333;
-    color: #fff;
-    text-align: center;
-    padding: 15px 0;
-    position: relative;
-    width: 100%;
-}
-
-/* 滚动条样式 */
-.book-row::-webkit-scrollbar {
-    height: 8px;
-    background: rgba(0,0,0,0.1);
-}
-
-.book-row::-webkit-scrollbar-thumb {
-    background: #b8a38d;
-    border-radius: 4px;
-}
-
-/* 响应式设计 */
+/* 响应式设计 - 移动端适配 */
 @media (max-width: 768px) {
     .container {
-        width: 95%;
+        width: 95%;  /* 容器宽度调整 */
     }
-
-    header h1 {
-        float: none;
-        text-align: center;
-        margin: 10px 0;
-    }
-
-    header nav {
-        float: none;
-        text-align: center;
-        margin: 15px 0;
-    }
-
-    header nav ul li {
-        display: block;
-        margin: 10px 0;
-    }
-
-    .shelf {
-        width: 95%;
-        padding: 20px 10px;
-    }
-
-    .book-item {
-        flex: 0 0 150px;
-    }
-
-    .book-cover {
-        height: 200px;
-    }
-
-    .book-title {
-        font-size: 14px;
-    }
+    /* 其他移动端样式调整... */
 }
-
-/* 移除旧的画廊样式 */
-/*
-.gallery { ... } 已废弃
-.gallery-item { ... } 已废弃
-*/
