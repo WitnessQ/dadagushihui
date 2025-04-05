@@ -14,7 +14,40 @@
             background: #f5f0eb;
             color: #333;
         }
+
+        /* 导航栏样式 */
+        header {
+            background: #333;
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
         
+        nav ul {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            justify-content: center;
+        }
+        
+        nav li {
+            margin: 0 15px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        nav a:hover {
+            background-color: #555;
+        }
+
         /* 书架容器 */
         .bookshelf {
             background: #f5e6d3;
@@ -36,16 +69,16 @@
         /* 书籍行 - 弹性布局不换行 */
         .book-row {
             display: flex;
-            flex-wrap: nowrap; /* 不换行 */
-            gap: 30px; /* 书籍间距 */
-            justify-content: flex-start; /* 左对齐 */
-            overflow-x: auto; /* 如果超出允许横向滚动 */
+            flex-wrap: nowrap;
+            gap: 30px;
+            justify-content: flex-start;
+            overflow-x: auto;
         }
         
         /* 每本书籍项 - 固定宽度 */
         .book-item {
-            flex: 0 0 calc(25% - 23px); /* 每行正好4本，考虑gap间距 */
-            min-width: 200px; /* 最小宽度 */
+            flex: 0 0 calc(25% - 23px);
+            min-width: 200px;
             transition: transform 0.3s ease;
             cursor: pointer;
         }
@@ -82,6 +115,19 @@
     </style>
 </head>
 <body>
+    <!-- 导航栏 -->
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">首页</a></li>
+                <li><a href="about.html">关于我</a></li>
+                <li><a href="gallery.html">画廊</a></li>
+                <li><a href="contact.html">联系我</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 书架内容 -->
     <div class="bookshelf">
         <!-- 第一层书架 - 4本书都在这一行 -->
         <div class="shelf">
