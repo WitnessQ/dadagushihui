@@ -1,0 +1,44 @@
+<div class="gallery">
+  <div class="slide active">
+    <img src="images/image1.jpg" alt="图片1">
+  </div>
+  <div class="slide">
+    <img src="images/image2.jpg" alt="图片2">
+  </div>
+  <div class="slide">
+    <img src="images/image3.jpg" alt="图片3">
+  </div>
+  
+  <button class="prev" onclick="plusSlides(-1)">❮</button>
+  <button class="next" onclick="plusSlides(1)">❯</button>
+</div>
+
+<style>
+.slide {
+  display: none;
+}
+.slide.active {
+  display: block;
+}
+</style>
+
+<script>
+let slideIndex = 1;
+
+function plusSlides(n) {
+  showSlides(slideIndex += n);
+}
+
+function showSlides(n) {
+  const slides = document.getElementsByClassName("slide");
+  
+  if (n > slides.length) {slideIndex = 1}
+  if (n < 1) {slideIndex = slides.length}
+  
+  for (let i = 0; i < slides.length; i++) {
+    slides[i].classList.remove("active");
+  }
+  
+  slides[slideIndex-1].classList.add("active");
+}
+</script>
