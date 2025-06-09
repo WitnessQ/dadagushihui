@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D翻书效果</title>
+    <style>
+        :root {
+            --w: 240px;
+            --h: 240px;
+        }
+        
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #0c1c38;
+        }
+
+        #book {
+            height: var(--h);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 1s;
+            perspective: 1600px;
+            transform-style: preserve-3d;
+        }
+        
+        .book-cover {
+            height: calc(var(--h) + 50px);
+            width: calc(var(--w) + 50px);
+            position: absolute;
+            background-image: linear-gradient(to bottom, #ff5c33, #ff9166, #3dd6f5);
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+            transition: 1s;
+            transform-origin: left;
+            backface-visibility: visible;
+            border: .5px solid black;
+        }
+
+        /* 修改后的页面样式 */
+        .page-front, .page-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background-size: cover;
+            background-position: center;
+            transform-style: preserve-3d;
+        }
+        .page-front {
+            transform: rotateY(0deg);
+        }
+        .page-back {
+            transform: rotateY(180deg);
+        }
+
+        /* 修改后的翻页动画 */
+        .flipping {
+            transform: rotateY(-180deg);
+        }
+    
+        .book-page {
+            height: var(--h);
+            width: var(--w);
+            position: absolute;
+            z-index: 100;
+            transition: 1s;
+            transform-origin: -25px;
+            background-size: cover;
+            transform-style: preserve-3d;
+            /* backface-visibility: visible; */
+            /* box-shadow: 0 0 5px rgba(0,0,0,0.1); */
+        }
+
+        #control {
+            margin-top: 60px;
+            user-select: none;
+        }
+        
+        #control button {
+            display: inline-block;
+            width: 45px;
+            height: 45px;
+            border: 0;
+            margin: 0px 15px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50%;
+            background-color: rgba(63,63,63,.8);
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #control button:hover {
+            background-color: rgba(83,83,83,.9);
+        }
+
+    #audioControl {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;   /*改变位置*/
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    #recordBtn {
+        background: #ff4444;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    #recordBtn:hover {
+        background: #ff6666;
+    }
+
+    #recordBtn.recording {
+        background: #00cc00;
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .recording-item {
+        margin-top: 10px;
+        color: white;
+    }
+
+    .play-button {
+        background: #3dd6f5;
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 3px;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+    .download-link {
+        background: #3dd6f5;
+        font-size: 13px;
+        text-decoration: none; 
+        border: none;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 3px;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+    .delete-button {
+        background: #ff4444;
+        font-size: 13px;
+        border: none;
+        color: white;
+       padding: 4px 8px;
+       border-radius: 3px;
+       margin-left: 10px;
+      cursor: pointer;
+    }
+    
+    #recordTimer {
+    display: none;
+    color: white;
+    margin-left: 15px;
+    font-family: monospace; 
+    font-size: 16px;
+    }
+    
+    /* 调整按钮容器布局
+    #audioControl > div {
+        display: flex;
+        align-items: center;
+    } */
+
+    </style>
+</head>
+<body>
+    <div id="book">
+        <div class="book-cover one-page">
+            <div class="page-front"></div>
+            <div class="page-back"></div>
+        </div>
+
+        <div class="book-page one-page">
+            <div class="page-front" style="background-image: url('1.jpg')"></div>
+            <div class="page-back" style="background-image: url('2.jpg')"></div>
+        </div>
+        <div class="book-page one-page">
+            <div class="page-front" style="background-image: url('3.jpg')"></div>
+            <div class="page-back" style="background-image: url('4.jpg')"></div>
+        </div>
+        <div class="book-page one-page">
+            <div class="page-front" style="background-image: url('5.jpg')"></div>
+            <div class="page-back" style="background-image: url('6.jpg')"></div>
+        </div>
+
+        <div class="book-cover one-page">
+            <div class="page-front"></div>
+            <div class="page-back"></div>
+        </div>
+    </div>
+    
+    <div id="control">
+        <button>&lt;</button>
+        <button>&gt;</button>
+    </div>
+
+    <div id="audioControl">
+        <div>
+            <button id="recordBtn">⏺ 开始录音</button>
+            <span id="recordTimer">00:00</span>
+        </div>
+        <div id="playbackList"></div>
+    </div>
+
+
+
+
+   <script>
+    const PAGECOUNT = 5
+    let pageNo = 0
+
+    let pages = document.querySelectorAll('.book-page')
+    let cover = document.querySelectorAll('.book-cover')
+    let btn = document.querySelectorAll('#control button')
+    let book = document.querySelector('#book')
+    let allPages = document.querySelectorAll('.one-page')
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let timerInterval;
+    let recordingTime = 0;
+
+
+    function init() {
+        allPages.forEach((page, index) => {
+            page.style.zIndex = PAGECOUNT - index
+        })
+
+        const updateButtons = () => {
+            btn[0].disabled = pageNo === 0
+            btn[1].disabled = pageNo === PAGECOUNT
+            
+            btn[0].style.backgroundColor = pageNo === 0 
+                ? "rgba(110, 110, 110, 0.5)" 
+                : "rgba(63, 63, 63, 0.8)" 
+                
+            btn[1].style.backgroundColor = pageNo === PAGECOUNT 
+                ? "rgba(110, 110, 110, 0.5)" 
+                : "rgba(63, 63, 63, 0.8)" 
+        }
+
+            btn[0].onclick = function() {
+                pageNo--
+                if ((PAGECOUNT - 1) == pageNo) {
+                    allPages[pageNo].style.transform = 'rotateY(0deg)'
+                    book.style.transform = 'translateX(145px)'
+                    btn[1].style.backgroundColor = "rgba(63, 63, 63, 0.8)"
+                    btn[1].style.color = "white"
+                    btn[1].disabled = false   
+                }
+                else {
+                    allPages[pageNo].style.transform = 'rotateY(0deg)'
+                }
+
+                allPages[pageNo].style.zIndex = PAGECOUNT - pageNo
+
+                if( 0 == pageNo ) {
+                    btn[0].style.backgroundColor = "rgba(110, 110, 110, 0.5)"
+                    btn[0].style.color = "darkgray"
+                    btn[0].disabled = true
+                    book.style.transform = 'translateX(0px)'
+                }
+            }
+
+            btn[1].onclick = function() {
+                if ( 0 == pageNo ) {
+                    allPages[pageNo].style.transform = 'rotateY(-180deg)'
+                    book.style.transform = 'translateX(145px)'
+                    btn[0].style.backgroundColor = "rgba(63, 63, 63, 0.8)"
+                    btn[0].style.color = "white"
+                    btn[0].disabled = false   
+                }
+                else {
+                    allPages[pageNo].style.transform = 'rotateY(-180deg)'
+                }
+
+                allPages[pageNo].style.zIndex = 1000 + pageNo
+                pageNo++
+
+                if( PAGECOUNT == pageNo ) {
+                    btn[1].style.backgroundColor = "rgba(110, 110, 110, 0.5)"
+                    btn[1].style.color = "darkgray"
+                    btn[1].disabled = true
+                    book.style.transform = 'translateX(300px)'
+                }
+            }
+        }
+
+    const recordBtn = document.getElementById('recordBtn');
+    const playbackList = document.getElementById('playbackList');
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = e => {
+                    audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    const audioElement = document.createElement('div');
+                    audioElement.className = 'recording-item';
+                    // <button class="play-button" onclick="this.previousElementSibling.play()">播放</button>
+                    audioElement.innerHTML = `
+                        <audio controls src="${audioUrl}"></audio>
+                        <a class="download-link" href="${audioUrl}" download="recording-${Date.now()}.mp3">下载</a>
+                       <button class="delete-button">删除</button>
+                    `;
+
+                    playbackList.prepend(audioElement);
+                    audioChunks = [];
+                };
+            })
+            .catch(err => {
+                console.error('无法访问麦克风:', err);
+                recordBtn.disabled = true;
+            });
+    } else {
+        recordBtn.disabled = true;
+        console.warn('浏览器不支持录音功能');
+    }
+    document.getElementById('playbackList').addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('delete-button')) {
+        const item = e.target.closest('.recording-item');
+        if (item) {
+            item.remove();
+            }
+        }
+    });
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    };
+
+    recordBtn.onclick = () => {
+        if (!isRecording) {
+            mediaRecorder.start();
+            recordBtn.textContent = '⏹ 停止录音';
+            recordBtn.classList.add('recording');
+            document.getElementById('recordTimer').style.display = 'inline';
+            timerInterval = setInterval(() => {
+                recordingTime++;
+                document.getElementById('recordTimer').textContent = formatTime(recordingTime);
+            }, 1000);
+            
+            isRecording = true;
+        } else {
+            mediaRecorder.stop();
+            recordBtn.textContent = '⏺ 开始录音';
+            recordBtn.classList.remove('recording');
+            clearInterval(timerInterval);
+            recordingTime = 0;
+            document.getElementById('recordTimer').style.display = 'none';
+            document.getElementById('recordTimer').textContent = '00:00';
+            
+            isRecording = false;
+        }
+    }; 
+    init()
+</script>
+</body>
+</html>
