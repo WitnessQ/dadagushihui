@@ -77,7 +77,7 @@
         }
         
         #sketches-panel {
-            width: 30%;
+            width: 25%;
             background: #fff;
             padding: 15px;
             border-radius: 5px;
@@ -104,7 +104,7 @@
         }
         
         #drawing-panel {
-            width: 70%;
+            width: 50%;
             background: #fff;
             padding: 15px;
             border-radius: 5px;
@@ -123,42 +123,84 @@
             position: absolute;
             top: 0;
             left: 0;
-            cursor: crosshair;
         }
         
-        .toolbar {
-            display: flex;
-            justify-content: center;
-            margin: 15px 0;
-            flex-wrap: wrap;
-            gap: 10px;
+        /* 工具面板 */
+        #tools-panel {
+            width: 25%;
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tool-section {
+            margin-bottom: 20px;
+        }
+        
+        .tool-section h3 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            color: #5a4a3a;
         }
         
         .tool-btn {
+            display: block;
+            width: 100%;
             padding: 8px 15px;
+            margin: 5px 0;
             background: #5a4a3a;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            text-align: left;
         }
         
         .tool-btn:hover {
             background: #7a6a5a;
+            transform: translateX(5px);
+        }
+        
+        .tool-btn.active {
+            background: #9a8a7a;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+        
+        .tool-btn i {
+            margin-right: 8px;
         }
         
         .color-picker {
-            width: 30px;
-            height: 30px;
+            width: 100%;
+            height: 40px;
             border: none;
             cursor: pointer;
-            vertical-align: middle;
+            margin: 10px 0;
         }
         
         .brush-size {
-            width: 60px;
-            padding: 5px;
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+        }
+        
+        /* 光标样式 */
+        .pencil-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path d="M15.5 0.5L1.5 14.5L0 16L1.5 14.5L15.5 0.5Z" fill="black"/><path d="M10.5 3.5L12.5 5.5L10.5 3.5Z" fill="black"/></svg>') 0 16, auto;
+        }
+        
+        .brush-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="black"/></svg>') 12 12, auto;
+        }
+        
+        .eraser-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="8" y="8" width="16" height="16" fill="white" stroke="black" stroke-width="1"/></svg>') 8 8, auto;
+        }
+        
+        .ruler-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="2" fill="black"/><rect x="4" y="9" width="2" height="6" fill="black"/><rect x="18" y="9" width="2" height="6" fill="black"/></svg>') 12 12, auto;
         }
     </style>
 </head>
@@ -186,14 +228,14 @@
                 <div id="sketches-panel">
                     <h3>选择白描底稿</h3>
                     <div class="sketch-item" draggable="true">
-                        <img src="images/\白描1.jpg" alt="白描1" data-src="images/白描1.jpg">
+                        <img src="images/白描1.jpg" alt="白描1" data-src="images/白描1.jpg">
                     </div>
                     <div class="sketch-item" draggable="true">
                         <img src="images/白描2.jpg" alt="白描2" data-src="images/白描2.jpg">
                     </div>
                 </div>
                 
-                <!-- 右侧绘画面板 -->
+                <!-- 中间绘画面板 -->
                 <div id="drawing-panel">
                     <h3>绘画区域</h3>
                     <div id="canvas-container">
@@ -201,16 +243,44 @@
                     </div>
                     <div class="toolbar">
                         <button class="tool-btn" id="clear-btn">清空画布</button>
-                        <input type="color" class="color-picker" id="color-picker" value="#000000">
-                        <select class="brush-size" id="brush-size">
-                            <option value="1">1px</option>
-                            <option value="3" selected>3px</option>
-                            <option value="5">5px</option>
-                            <option value="10">10px</option>
-                            <option value="15">15px</option>
-                        </select>
-                        <button class="tool-btn" id="eraser-btn">橡皮擦</button>
                         <button class="tool-btn" id="save-btn">保存作品</button>
+                    </div>
+                </div>
+                
+                <!-- 右侧工具面板 -->
+                <div id="tools-panel">
+                    <h3>画具选择</h3>
+                    
+                    <div class="tool-section">
+                        <h4>画笔工具</h4>
+                        <button class="tool-btn active" id="pencil-btn">
+                            <i>✏️</i>铅笔
+                        </button>
+                        <button class="tool-btn" id="brush-btn">
+                            <i>🖌️</i>油画笔
+                        </button>
+                        <button class="tool-btn" id="eraser-btn">
+                            <i>🧽</i>橡皮擦
+                        </button>
+                        <button class="tool-btn" id="ruler-btn">
+                            <i>📏</i>直尺
+                        </button>
+                    </div>
+                    
+                    <div class="tool-section">
+                        <h4>颜色选择</h4>
+                        <input type="color" class="color-picker" id="color-picker" value="#000000">
+                    </div>
+                    
+                    <div class="tool-section">
+                        <h4>笔刷大小</h4>
+                        <select class="brush-size" id="brush-size">
+                            <option value="1">1px (细)</option>
+                            <option value="3" selected>3px (中)</option>
+                            <option value="5">5px (粗)</option>
+                            <option value="10">10px (特粗)</option>
+                            <option value="15">15px (最大)</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -225,9 +295,14 @@
             const clearBtn = document.getElementById('clear-btn');
             const colorPicker = document.getElementById('color-picker');
             const brushSize = document.getElementById('brush-size');
-            const eraserBtn = document.getElementById('eraser-btn');
             const saveBtn = document.getElementById('save-btn');
             const sketchItems = document.querySelectorAll('.sketch-item');
+            
+            // 工具按钮
+            const pencilBtn = document.getElementById('pencil-btn');
+            const brushBtn = document.getElementById('brush-btn');
+            const eraserBtn = document.getElementById('eraser-btn');
+            const rulerBtn = document.getElementById('ruler-btn');
             
             // 设置画布大小
             function resizeCanvas() {
@@ -238,6 +313,11 @@
                 // 设置画布背景为白色
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 如果有底图，重新绘制
+                if (currentSketchImage) {
+                    drawSketchImage();
+                }
             }
             
             // 初始化画布
@@ -250,28 +330,62 @@
             let lastY = 0;
             let currentColor = '#000000';
             let currentSize = 3;
-            let isErasing = false;
+            let currentTool = 'pencil';
+            let currentSketchImage = null;
+            let sketchImageData = null;
             
-            // 清空画布
+            // 工具按钮点击事件
+            pencilBtn.addEventListener('click', function() {
+                setActiveTool('pencil');
+                canvas.classList.add('pencil-cursor');
+                canvas.classList.remove('brush-cursor', 'eraser-cursor', 'ruler-cursor');
+            });
+            
+            brushBtn.addEventListener('click', function() {
+                setActiveTool('brush');
+                canvas.classList.add('brush-cursor');
+                canvas.classList.remove('pencil-cursor', 'eraser-cursor', 'ruler-cursor');
+            });
+            
+            eraserBtn.addEventListener('click', function() {
+                setActiveTool('eraser');
+                canvas.classList.add('eraser-cursor');
+                canvas.classList.remove('pencil-cursor', 'brush-cursor', 'ruler-cursor');
+            });
+            
+            rulerBtn.addEventListener('click', function() {
+                setActiveTool('ruler');
+                canvas.classList.add('ruler-cursor');
+                canvas.classList.remove('pencil-cursor', 'brush-cursor', 'eraser-cursor');
+                alert('直尺工具: 点击起点和终点绘制直线');
+            });
+            
+            function setActiveTool(tool) {
+                currentTool = tool;
+                // 更新按钮状态
+                [pencilBtn, brushBtn, eraserBtn, rulerBtn].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById(tool + '-btn').classList.add('active');
+            }
+            
+            // 清空画布（保留底图）
             clearBtn.addEventListener('click', function() {
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (currentSketchImage) {
+                    drawSketchImage();
+                }
             });
             
             // 颜色选择
             colorPicker.addEventListener('input', function() {
                 currentColor = this.value;
-                isErasing = false;
             });
             
             // 笔刷大小
             brushSize.addEventListener('change', function() {
                 currentSize = parseInt(this.value);
-            });
-            
-            // 橡皮擦
-            eraserBtn.addEventListener('click', function() {
-                isErasing = true;
             });
             
             // 保存作品
@@ -291,23 +405,61 @@
             function startDrawing(e) {
                 isDrawing = true;
                 [lastX, lastY] = [e.offsetX, e.offsetY];
+                
+                // 如果是直尺工具，只画直线
+                if (currentTool === 'ruler') {
+                    ctx.beginPath();
+                    ctx.moveTo(e.offsetX, e.offsetY);
+                    return;
+                }
+                
+                // 其他工具开始绘制
+                ctx.beginPath();
+                ctx.arc(lastX, lastY, currentSize/2, 0, Math.PI * 2);
+                if (currentTool === 'eraser') {
+                    ctx.fillStyle = '#ffffff';
+                } else {
+                    ctx.fillStyle = currentColor;
+                }
+                ctx.fill();
             }
             
             function draw(e) {
                 if (!isDrawing) return;
                 
+                if (currentTool === 'ruler') {
+                    // 直尺工具 - 预览直线
+                    redrawCanvas(); // 清除之前的预览
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(e.offsetX, e.offsetY);
+                    ctx.strokeStyle = currentColor;
+                    ctx.lineWidth = currentSize;
+                    ctx.stroke();
+                    return;
+                }
+                
+                // 其他工具绘制
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(e.offsetX, e.offsetY);
                 
-                if (isErasing) {
+                if (currentTool === 'eraser') {
                     ctx.strokeStyle = '#ffffff';
+                } else if (currentTool === 'brush') {
+                    // 油画笔效果 - 半透明
+                    const hex = currentColor.substring(1);
+                    const r = parseInt(hex.substring(0, 2), 16);
+                    const g = parseInt(hex.substring(2, 4), 16);
+                    const b = parseInt(hex.substring(4, 6), 16);
+                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
                 } else {
+                    // 铅笔
                     ctx.strokeStyle = currentColor;
                 }
                 
                 ctx.lineWidth = currentSize;
-                ctx.lineCap = 'round';
+                ctx.lineCap = currentTool === 'pencil' ? 'round' : 'square';
                 ctx.lineJoin = 'round';
                 ctx.stroke();
                 
@@ -316,6 +468,48 @@
             
             function stopDrawing() {
                 isDrawing = false;
+            }
+            
+            // 重绘画布（保留底图）
+            function redrawCanvas() {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (currentSketchImage) {
+                    drawSketchImage();
+                }
+            }
+            
+            // 绘制底图
+            function drawSketchImage() {
+                if (!currentSketchImage) return;
+                
+                const img = new Image();
+                img.onload = function() {
+                    // 计算图片尺寸以适应画布
+                    let width = img.width;
+                    let height = img.height;
+                    const ratio = width / height;
+                    
+                    if (width > canvas.width) {
+                        width = canvas.width;
+                        height = width / ratio;
+                    }
+                    
+                    if (height > canvas.height) {
+                        height = canvas.height;
+                        width = height * ratio;
+                    }
+                    
+                    // 居中绘制图片
+                    const x = (canvas.width - width) / 2;
+                    const y = (canvas.height - height) / 2;
+                    
+                    ctx.drawImage(img, x, y, width, height);
+                    
+                    // 保存底图数据，防止被擦除
+                    sketchImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                };
+                img.src = currentSketchImage;
             }
             
             // 触摸屏支持
@@ -328,8 +522,8 @@
                 const touch = e.touches[0];
                 const rect = canvas.getBoundingClientRect();
                 const mouseEvent = new MouseEvent('mousedown', {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
+                    clientX: touch.clientX - rect.left,
+                    clientY: touch.clientY - rect.top
                 });
                 canvas.dispatchEvent(mouseEvent);
             }
@@ -337,9 +531,10 @@
             function handleTouchMove(e) {
                 e.preventDefault();
                 const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
                 const mouseEvent = new MouseEvent('mousemove', {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
+                    clientX: touch.clientX - rect.left,
+                    clientY: touch.clientY - rect.top
                 });
                 canvas.dispatchEvent(mouseEvent);
             }
@@ -364,39 +559,21 @@
             canvas.addEventListener('drop', function(e) {
                 e.preventDefault();
                 const imageSrc = e.dataTransfer.getData('text/plain');
+                currentSketchImage = imageSrc;
                 loadSketchImage(imageSrc);
             });
             
             function loadSketchImage(src) {
                 const img = new Image();
                 img.onload = function() {
-                    // 清空画布
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // 计算图片尺寸以适应画布
-                    let width = img.width;
-                    let height = img.height;
-                    const ratio = width / height;
-                    
-                    if (width > canvas.width) {
-                        width = canvas.width;
-                        height = width / ratio;
-                    }
-                    
-                    if (height > canvas.height) {
-                        height = canvas.height;
-                        width = height * ratio;
-                    }
-                    
-                    // 居中绘制图片
-                    const x = (canvas.width - width) / 2;
-                    const y = (canvas.height - height) / 2;
-                    
-                    ctx.drawImage(img, x, y, width, height);
+                    redrawCanvas();
                 };
                 img.src = src;
             }
+            
+            // 初始化铅笔工具和光标
+            setActiveTool('pencil');
+            canvas.classList.add('pencil-cursor');
         });
     </script>
 </body>
