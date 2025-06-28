@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的艺术画廊</title>
+    <title>数字填色工坊</title>
     <style>
         /* 全局样式 */
         body {
@@ -90,7 +90,7 @@
             border: 1px solid #ddd;
             border-radius: 3px;
             overflow: hidden;
-            transition: transform 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
         }
         
         .sketch-item:hover {
@@ -123,6 +123,14 @@
             position: absolute;
             top: 0;
             left: 0;
+            cursor: crosshair;
+        }
+        
+        #user-drawing {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
         }
         
         /* 工具面板 */
@@ -186,6 +194,18 @@
             margin: 10px 0;
         }
         
+        /* 橡皮擦预览样式 */
+        .eraser-preview {
+            position: absolute;
+            pointer-events: none;
+            border: 1px dashed #999;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            display: none;
+        }
+        
         /* 拖放提示 */
         .drop-hint {
             position: absolute;
@@ -242,7 +262,9 @@
                     <h3>绘画区域</h3>
                     <div id="canvas-container">
                         <canvas id="drawing-canvas"></canvas>
+                        <canvas id="user-drawing"></canvas>
                         <div class="drop-hint" id="drop-hint">拖放白描底稿到这里</div>
+                        <div class="eraser-preview" id="eraser-preview"></div>
                     </div>
                     <div class="toolbar">
                         <button class="tool-btn" id="clear-btn">清空画布</button>
@@ -253,23 +275,36 @@
                 <!-- 右侧工具面板 -->
                 <div id="tools-panel">
                     <h3>画具选择</h3>
+                    
                     <div class="tool-section">
+                        <h4>画笔工具</h4>
                         <button class="tool-btn active" id="pencil-btn">
                             <i>✏️</i>铅笔
+                        </button>
+                        <button class="tool-btn" id="brush-btn">
+                            <i>🖌️</i>油画笔
                         </button>
                         <button class="tool-btn" id="eraser-btn">
                             <i>🧽</i>橡皮擦
                         </button>
+                        <button class="tool-btn" id="ruler-btn">
+                            <i>📏</i>直尺
+                        </button>
                     </div>
+                    
                     <div class="tool-section">
+                        <h4>颜色选择</h4>
                         <input type="color" class="color-picker" id="color-picker" value="#000000">
                     </div>
+                    
                     <div class="tool-section">
-                        <label for="brush-size">笔刷大小</label>
+                        <h4>笔刷大小</h4>
                         <select class="brush-size" id="brush-size">
                             <option value="1">1px (细)</option>
                             <option value="3" selected>3px (中)</option>
                             <option value="5">5px (粗)</option>
+                            <option value="10">10px (特粗)</option>
+                            <option value="15">15px (最大)</option>
                         </select>
                     </div>
                 </div>
@@ -282,23 +317,40 @@
             // 获取元素
             const canvas = document.getElementById('drawing-canvas');
             const ctx = canvas.getContext('2d');
+            const userCanvas = document.getElementById('user-drawing');
+            const userCtx = userCanvas.getContext('2d');
+            const clearBtn = document.getElementById('clear-btn');
             const colorPicker = document.getElementById('color-picker');
             const brushSize = document.getElementById('brush-size');
-            const pencilBtn = document.getElementById('pencil-btn');
-            const eraserBtn = document.getElementById('eraser-btn');
-            const clearBtn = document.getElementById('clear-btn');
             const saveBtn = document.getElementById('save-btn');
             const sketchItems = document.querySelectorAll('.sketch-item');
             const dropHint = document.getElementById('drop-hint');
             const canvasContainer = document.getElementById('canvas-container');
+            const eraserPreview = document.getElementById('eraser-preview');
+            
+            // 工具按钮
+            const pencilBtn = document.getElementById('pencil-btn');
+            const brushBtn = document.getElementById('brush-btn');
+            const eraserBtn = document.getElementById('eraser-btn');
+            const rulerBtn = document.getElementById('ruler-btn');
             
             // 设置画布大小
             function resizeCanvas() {
-                canvas.width = canvasContainer.offsetWidth;
-                canvas.height = canvasContainer.offsetHeight;
+                const container = document.getElementById('canvas-container');
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+                userCanvas.width = container.offsetWidth;
+                userCanvas.height = container.offsetHeight;
+                
+                // 设置画布背景为白色
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 清空用户绘制层
+                userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
             }
+            
+            // 初始化画布
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
             
@@ -309,35 +361,83 @@
             let currentColor = '#000000';
             let currentSize = 3;
             let currentTool = 'pencil';
-            let sketchImageData = null; // 用于保存底稿图像数据
-
-            // 工具按钮点击事件
-            pencilBtn.addEventListener('click', function() {
-                currentTool = 'pencil';
-                pencilBtn.classList.add('active');
-                eraserBtn.classList.remove('active');
-            });
-            eraserBtn.addEventListener('click', function() {
-                currentTool = 'eraser';
-                eraserBtn.classList.add('active');
-                pencilBtn.classList.remove('active');
-            });
+            let currentSketchImage = null;
+            let isRulerDrawing = false;
+            let rulerStartX = 0;
+            let rulerStartY = 0;
             
-            // 清空画布
-            clearBtn.addEventListener('click', function() {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                if (sketchImageData) {
-                    ctx.putImageData(sketchImageData, 0, 0);
+            // 更新橡皮擦预览位置
+            function updateEraserPosition(e) {
+                if (currentTool === 'eraser') {
+                    const rect = canvasContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // 确保预览不会超出画布边界
+                    const clampedX = Math.max(currentSize, Math.min(x, rect.width - currentSize));
+                    const clampedY = Math.max(currentSize, Math.min(y, rect.height - currentSize));
+                    
+                    eraserPreview.style.left = clampedX + 'px';
+                    eraserPreview.style.top = clampedY + 'px';
                 }
-            });
+            }
             
-            // 保存作品
-            saveBtn.addEventListener('click', function() {
-                const link = document.createElement('a');
-                link.download = '我的填色作品.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+            // 工具按钮点击事件
+            function setupToolButtons() {
+                pencilBtn.addEventListener('click', function() {
+                    setActiveTool('pencil');
+                    canvas.style.cursor = 'crosshair';
+                    userCanvas.style.cursor = 'crosshair';
+                    eraserPreview.style.display = 'none';
+                });
+                
+                brushBtn.addEventListener('click', function() {
+                    setActiveTool('brush');
+                    canvas.style.cursor = 'crosshair';
+                    userCanvas.style.cursor = 'crosshair';
+                    eraserPreview.style.display = 'none';
+                });
+                
+                eraserBtn.addEventListener('click', function() {
+                    setActiveTool('eraser');
+                    canvas.style.cursor = 'none';
+                    userCanvas.style.cursor = 'none';
+                    eraserPreview.style.display = 'block';
+                    updateEraserPreview();
+                });
+                
+                rulerBtn.addEventListener('click', function() {
+                    setActiveTool('ruler');
+                    canvas.style.cursor = 'crosshair';
+                    userCanvas.style.cursor = 'crosshair';
+                    eraserPreview.style.display = 'none';
+                });
+            }
+            
+            function setActiveTool(tool) {
+                currentTool = tool;
+                // 更新按钮状态
+                [pencilBtn, brushBtn, eraserBtn, rulerBtn].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById(tool + '-btn').classList.add('active');
+            }
+            
+            // 更新橡皮擦预览
+            function updateEraserPreview() {
+                if (currentTool === 'eraser') {
+                    eraserPreview.style.width = currentSize * 2 + 'px';
+                    eraserPreview.style.height = currentSize * 2 + 'px';
+                }
+            }
+            
+            // 清空画布（保留底图）
+            clearBtn.addEventListener('click', function() {
+                // 只清空用户绘制层
+                userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
+                if (currentSketchImage) {
+                    loadSketchImage(currentSketchImage);
+                }
             });
             
             // 颜色选择
@@ -348,70 +448,246 @@
             // 笔刷大小
             brushSize.addEventListener('change', function() {
                 currentSize = parseInt(this.value);
+                updateEraserPreview();
+            });
+            
+            // 保存作品
+            saveBtn.addEventListener('click', function() {
+                // 创建临时画布合并两层
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // 先绘制底图
+                tempCtx.drawImage(canvas, 0, 0);
+                // 再绘制用户绘制的内容
+                tempCtx.drawImage(userCanvas, 0, 0);
+                
+                // 保存合并后的图像
+                const link = document.createElement('a');
+                link.download = '我的填色作品.png';
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
             });
             
             // 绘画功能
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            function startDrawing(e) {
-                isDrawing = true;
-                [lastX, lastY] = [e.offsetX, e.offsetY];
-            }
-            
-            function draw(e) {
-                if (!isDrawing) return;
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(e.offsetX, e.offsetY);
-                if (currentTool === 'eraser') {
-                    ctx.globalCompositeOperation = 'destination-out'; // 橡皮擦模式
-                } else {
-                    ctx.globalCompositeOperation = 'source-over'; // 正常绘制模式
-                    ctx.strokeStyle = currentColor;
+            userCanvas.addEventListener('mousedown', function(e) {
+                const rect = userCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (currentTool === 'ruler') {
+                    isRulerDrawing = true;
+                    rulerStartX = x;
+                    rulerStartY = y;
+                    return;
                 }
-                ctx.lineWidth = currentSize;
-                ctx.stroke();
-                [lastX, lastY] = [e.offsetX, e.offsetY];
-            }
+                
+                isDrawing = true;
+                [lastX, lastY] = [x, y];
+                
+                // 开始绘制点
+                userCtx.beginPath();
+                userCtx.arc(lastX, lastY, currentSize/2, 0, Math.PI * 2);
+                if (currentTool === 'eraser') {
+                    // 橡皮擦实际上是清除用户绘制层
+                    userCtx.globalCompositeOperation = 'destination-out';
+                    userCtx.fillStyle = 'rgba(0,0,0,1)'; // 任意颜色，因为使用destination-out
+                } else {
+                    userCtx.globalCompositeOperation = 'source-over';
+                    userCtx.fillStyle = currentColor;
+                }
+                userCtx.fill();
+            });
+            
+            // 鼠标移动事件
+            canvasContainer.addEventListener('mousemove', function(e) {
+                updateEraserPosition(e);
+                
+                if (!isDrawing) return;
+                
+                const rect = userCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (currentTool === 'ruler' && isRulerDrawing) {
+                    // 直尺工具 - 预览直线
+                    redrawUserCanvas();
+                    userCtx.beginPath();
+                    userCtx.moveTo(rulerStartX, rulerStartY);
+                    userCtx.lineTo(x, y);
+                    userCtx.strokeStyle = currentColor;
+                    userCtx.lineWidth = currentSize;
+                    userCtx.stroke();
+                    return;
+                }
+                
+                // 其他工具绘制
+                userCtx.beginPath();
+                userCtx.moveTo(lastX, lastY);
+                userCtx.lineTo(x, y);
+                
+                if (currentTool === 'eraser') {
+                    userCtx.globalCompositeOperation = 'destination-out';
+                    userCtx.strokeStyle = 'rgba(0,0,0,1)';
+                } else {
+                    userCtx.globalCompositeOperation = 'source-over';
+                    if (currentTool === 'brush') {
+                        // 油画笔效果 - 半透明
+                        const hex = currentColor.substring(1);
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+                        userCtx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
+                    } else {
+                        // 铅笔
+                        userCtx.strokeStyle = currentColor;
+                    }
+                }
+                
+                userCtx.lineWidth = currentSize;
+                userCtx.lineCap = currentTool === 'pencil' ? 'round' : 'square';
+                userCtx.lineJoin = 'round';
+                userCtx.stroke();
+                
+                [lastX, lastY] = [x, y];
+            });
+            
+            userCanvas.addEventListener('mouseup', stopDrawing);
+            userCanvas.addEventListener('mouseout', stopDrawing);
             
             function stopDrawing() {
+                if (currentTool === 'ruler' && isRulerDrawing) {
+                    // 完成直尺绘制
+                    isRulerDrawing = false;
+                    return;
+                }
+                
                 isDrawing = false;
-                ctx.globalCompositeOperation = 'source-over'; // 恢复正常绘制模式
+                // 恢复默认合成模式
+                userCtx.globalCompositeOperation = 'source-over';
             }
             
-            // 拖放功能
-            sketchItems.forEach(item => {
-                item.addEventListener('dragstart', function(e) {
-                    e.dataTransfer.setData('text/plain', this.querySelector('img').dataset.src);
-                });
-            });
+            // 重绘用户绘制层
+            function redrawUserCanvas() {
+                // 不需要实现，因为我们不清除用户绘制层
+            }
             
-            canvasContainer.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                dropHint.style.display = 'block';
-                canvasContainer.classList.add('canvas-highlight');
-            });
-            
-            canvasContainer.addEventListener('dragleave', function() {
-                dropHint.style.display = 'none';
-                canvasContainer.classList.remove('canvas-highlight');
-            });
-            
-            canvasContainer.addEventListener('drop', function(e) {
-                e.preventDefault();
-                dropHint.style.display = 'none';
-                canvasContainer.classList.remove('canvas-highlight');
-                const imageSrc = e.dataTransfer.getData('text/plain');
+            // 加载底图
+            function loadSketchImage(src) {
                 const img = new Image();
                 img.onload = function() {
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    sketchImageData = ctx.getImageData(0, 0, canvas.width, canvas.height); // 保存底稿图像数据
+                    // 清除底图画布
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 计算图片尺寸以适应画布
+                    let width = img.width;
+                    let height = img.height;
+                    const ratio = width / height;
+                    
+                    if (width > canvas.width) {
+                        width = canvas.width;
+                        height = width / ratio;
+                    }
+                    
+                    if (height > canvas.height) {
+                        height = canvas.height;
+                        width = height * ratio;
+                    }
+                    
+                    // 居中绘制图片
+                    const x = (canvas.width - width) / 2;
+                    const y = (canvas.height - height) / 2;
+                    
+                    ctx.drawImage(img, x, y, width, height);
                 };
-                img.src = imageSrc;
+                img.onerror = function() {
+                    alert('图片加载失败，请检查图片路径: ' + src);
+                };
+                img.src = src;
+            }
+            
+            // 触摸屏支持
+            userCanvas.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                userCanvas.dispatchEvent(mouseEvent);
+                
+                // 更新橡皮擦位置
+                updateEraserPosition(mouseEvent);
+            }, {passive: false});
+            
+            userCanvas.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                userCanvas.dispatchEvent(mouseEvent);
+                
+                // 更新橡皮擦位置
+                updateEraserPosition(mouseEvent);
+            }, {passive: false});
+            
+            userCanvas.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                const mouseEvent = new MouseEvent('mouseup', {});
+                userCanvas.dispatchEvent(mouseEvent);
             });
+            
+            // 拖放功能
+            function setupDragAndDrop() {
+                sketchItems.forEach(item => {
+                    item.addEventListener('dragstart', function(e) {
+                        const imgSrc = this.querySelector('img').getAttribute('src');
+                        e.dataTransfer.setData('text/plain', imgSrc);
+                        e.dataTransfer.effectAllowed = 'copy';
+                        this.style.opacity = '0.4';
+                    });
+                    
+                    item.addEventListener('dragend', function() {
+                        this.style.opacity = '1';
+                    });
+                });
+                
+                canvasContainer.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    dropHint.style.display = 'block';
+                    canvasContainer.classList.add('canvas-highlight');
+                    e.dataTransfer.dropEffect = 'copy';
+                });
+                
+                canvasContainer.addEventListener('dragleave', function() {
+                    dropHint.style.display = 'none';
+                    canvasContainer.classList.remove('canvas-highlight');
+                });
+                
+                canvasContainer.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    dropHint.style.display = 'none';
+                    canvasContainer.classList.remove('canvas-highlight');
+                    
+                    const imageSrc = e.dataTransfer.getData('text/plain');
+                    if (imageSrc) {
+                        currentSketchImage = imageSrc;
+                        loadSketchImage(imageSrc);
+                    }
+                });
+            }
+            
+            // 初始化
+            setupToolButtons();
+            setupDragAndDrop();
+            setActiveTool('pencil');
+            canvas.style.cursor = 'crosshair';
+            userCanvas.style.cursor = 'crosshair';
         });
     </script>
 </body>
