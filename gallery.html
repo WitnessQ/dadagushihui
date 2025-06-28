@@ -258,6 +258,7 @@
                     <h3>绘画区域</h3>
                     <div id="canvas-container">
                         <canvas id="drawing-canvas"></canvas>
+                        <canvas id="user-drawing" style="position: absolute; top: 0; left: 0;"></canvas>
                         <div class="drop-hint" id="drop-hint">拖放白描底稿到这里</div>
                         <div class="eraser-preview" id="eraser-preview" style="display: none;"></div>
                     </div>
@@ -312,6 +313,8 @@
             // 获取元素
             const canvas = document.getElementById('drawing-canvas');
             const ctx = canvas.getContext('2d');
+            const userCanvas = document.getElementById('user-drawing');
+            const userCtx = userCanvas.getContext('2d');
             const clearBtn = document.getElementById('clear-btn');
             const colorPicker = document.getElementById('color-picker');
             const brushSize = document.getElementById('brush-size');
@@ -332,10 +335,15 @@
                 const container = document.getElementById('canvas-container');
                 canvas.width = container.offsetWidth;
                 canvas.height = container.offsetHeight;
+                userCanvas.width = container.offsetWidth;
+                userCanvas.height = container.offsetHeight;
                 
                 // 设置画布背景为白色
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 清空用户绘制层
+                userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
             }
             
             // 初始化画布
@@ -359,24 +367,28 @@
                 pencilBtn.addEventListener('click', function() {
                     setActiveTool('pencil');
                     canvas.style.cursor = 'crosshair';
+                    userCanvas.style.cursor = 'crosshair';
                     eraserPreview.style.display = 'none';
                 });
                 
                 brushBtn.addEventListener('click', function() {
                     setActiveTool('brush');
                     canvas.style.cursor = 'crosshair';
+                    userCanvas.style.cursor = 'crosshair';
                     eraserPreview.style.display = 'none';
                 });
                 
                 eraserBtn.addEventListener('click', function() {
                     setActiveTool('eraser');
                     canvas.style.cursor = 'none';
+                    userCanvas.style.cursor = 'none';
                     updateEraserPreview();
                 });
                 
                 rulerBtn.addEventListener('click', function() {
                     setActiveTool('ruler');
                     canvas.style.cursor = 'crosshair';
+                    userCanvas.style.cursor = 'crosshair';
                     eraserPreview.style.display = 'none';
                 });
             }
@@ -403,8 +415,8 @@
             
             // 清空画布（保留底图）
             clearBtn.addEventListener('click', function() {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // 只清空用户绘制层
+                userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
                 if (currentSketchImage) {
                     loadSketchImage(currentSketchImage);
                 }
@@ -423,31 +435,43 @@
             
             // 保存作品
             saveBtn.addEventListener('click', function() {
+                // 创建临时画布合并两层
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // 先绘制底图
+                tempCtx.drawImage(canvas, 0, 0);
+                // 再绘制用户绘制的内容
+                tempCtx.drawImage(userCanvas, 0, 0);
+                
+                // 保存合并后的图像
                 const link = document.createElement('a');
                 link.download = '我的填色作品.png';
-                link.href = canvas.toDataURL('image/png');
+                link.href = tempCanvas.toDataURL('image/png');
                 link.click();
             });
             
-            // 绘画功能
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
+            // 绘画功能 - 现在只在userCanvas上绘制
+            userCanvas.addEventListener('mousedown', startDrawing);
+            userCanvas.addEventListener('mousemove', draw);
+            userCanvas.addEventListener('mouseup', stopDrawing);
+            userCanvas.addEventListener('mouseout', stopDrawing);
             
             // 橡皮擦预览跟随鼠标
-            canvas.addEventListener('mousemove', function(e) {
+            userCanvas.addEventListener('mousemove', function(e) {
                 if (currentTool === 'eraser') {
-                    const rect = canvas.getBoundingClientRect();
+                    const rect = userCanvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
-                    eraserPreview.style.left = x + 'px';
-                    eraserPreview.style.top = y + 'px';
+                    eraserPreview.style.left = (x + rect.left) + 'px';
+                    eraserPreview.style.top = (y + rect.top) + 'px';
                 }
             });
             
             function startDrawing(e) {
-                const rect = canvas.getBoundingClientRect();
+                const rect = userCanvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 
@@ -462,58 +486,65 @@
                 [lastX, lastY] = [x, y];
                 
                 // 开始绘制点
-                ctx.beginPath();
-                ctx.arc(lastX, lastY, currentSize/2, 0, Math.PI * 2);
+                userCtx.beginPath();
+                userCtx.arc(lastX, lastY, currentSize/2, 0, Math.PI * 2);
                 if (currentTool === 'eraser') {
-                    ctx.fillStyle = '#ffffff';
+                    // 橡皮擦实际上是清除用户绘制层
+                    userCtx.globalCompositeOperation = 'destination-out';
+                    userCtx.fillStyle = 'rgba(0,0,0,1)'; // 任意颜色，因为使用destination-out
                 } else {
-                    ctx.fillStyle = currentColor;
+                    userCtx.globalCompositeOperation = 'source-over';
+                    userCtx.fillStyle = currentColor;
                 }
-                ctx.fill();
+                userCtx.fill();
             }
             
             function draw(e) {
-                const rect = canvas.getBoundingClientRect();
+                const rect = userCanvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 
                 if (currentTool === 'ruler' && isRulerDrawing) {
                     // 直尺工具 - 预览直线
-                    redrawCanvas();
-                    ctx.beginPath();
-                    ctx.moveTo(rulerStartX, rulerStartY);
-                    ctx.lineTo(x, y);
-                    ctx.strokeStyle = currentColor;
-                    ctx.lineWidth = currentSize;
-                    ctx.stroke();
+                    redrawUserCanvas();
+                    userCtx.beginPath();
+                    userCtx.moveTo(rulerStartX, rulerStartY);
+                    userCtx.lineTo(x, y);
+                    userCtx.strokeStyle = currentColor;
+                    userCtx.lineWidth = currentSize;
+                    userCtx.stroke();
                     return;
                 }
                 
                 if (!isDrawing) return;
                 
                 // 其他工具绘制
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(x, y);
+                userCtx.beginPath();
+                userCtx.moveTo(lastX, lastY);
+                userCtx.lineTo(x, y);
                 
                 if (currentTool === 'eraser') {
-                    ctx.strokeStyle = '#ffffff';
-                } else if (currentTool === 'brush') {
-                    // 油画笔效果 - 半透明
-                    const hex = currentColor.substring(1);
-                    const r = parseInt(hex.substring(0, 2), 16);
-                    const g = parseInt(hex.substring(2, 4), 16);
-                    const b = parseInt(hex.substring(4, 6), 16);
-                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
+                    userCtx.globalCompositeOperation = 'destination-out';
+                    userCtx.strokeStyle = 'rgba(0,0,0,1)';
                 } else {
-                    // 铅笔
-                    ctx.strokeStyle = currentColor;
+                    userCtx.globalCompositeOperation = 'source-over';
+                    if (currentTool === 'brush') {
+                        // 油画笔效果 - 半透明
+                        const hex = currentColor.substring(1);
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+                        userCtx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
+                    } else {
+                        // 铅笔
+                        userCtx.strokeStyle = currentColor;
+                    }
                 }
                 
-                ctx.lineWidth = currentSize;
-                ctx.lineCap = currentTool === 'pencil' ? 'round' : 'square';
-                ctx.lineJoin = 'round';
-                ctx.stroke();
+                userCtx.lineWidth = currentSize;
+                userCtx.lineCap = currentTool === 'pencil' ? 'round' : 'square';
+                userCtx.lineJoin = 'round';
+                userCtx.stroke();
                 
                 [lastX, lastY] = [x, y];
             }
@@ -526,22 +557,20 @@
                 }
                 
                 isDrawing = false;
+                // 恢复默认合成模式
+                userCtx.globalCompositeOperation = 'source-over';
             }
             
-            // 重绘画布
-            function redrawCanvas() {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                if (currentSketchImage) {
-                    loadSketchImage(currentSketchImage);
-                }
+            // 重绘用户绘制层
+            function redrawUserCanvas() {
+                // 不需要实现，因为我们不清除用户绘制层
             }
             
             // 加载底图
             function loadSketchImage(src) {
                 const img = new Image();
                 img.onload = function() {
-                    // 清除画布
+                    // 清除底图画布
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
@@ -573,36 +602,36 @@
             }
             
             // 触摸屏支持
-            canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
-            canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
-            canvas.addEventListener('touchend', handleTouchEnd);
+            userCanvas.addEventListener('touchstart', handleTouchStart, {passive: false});
+            userCanvas.addEventListener('touchmove', handleTouchMove, {passive: false});
+            userCanvas.addEventListener('touchend', handleTouchEnd);
             
             function handleTouchStart(e) {
                 e.preventDefault();
                 const touch = e.touches[0];
-                const rect = canvas.getBoundingClientRect();
+                const rect = userCanvas.getBoundingClientRect();
                 const mouseEvent = new MouseEvent('mousedown', {
                     clientX: touch.clientX,
                     clientY: touch.clientY
                 });
-                canvas.dispatchEvent(mouseEvent);
+                userCanvas.dispatchEvent(mouseEvent);
             }
             
             function handleTouchMove(e) {
                 e.preventDefault();
                 const touch = e.touches[0];
-                const rect = canvas.getBoundingClientRect();
+                const rect = userCanvas.getBoundingClientRect();
                 const mouseEvent = new MouseEvent('mousemove', {
                     clientX: touch.clientX,
                     clientY: touch.clientY
                 });
-                canvas.dispatchEvent(mouseEvent);
+                userCanvas.dispatchEvent(mouseEvent);
             }
             
             function handleTouchEnd(e) {
                 e.preventDefault();
                 const mouseEvent = new MouseEvent('mouseup', {});
-                canvas.dispatchEvent(mouseEvent);
+                userCanvas.dispatchEvent(mouseEvent);
             }
             
             // 拖放功能
@@ -650,6 +679,7 @@
             setupDragAndDrop();
             setActiveTool('pencil');
             canvas.style.cursor = 'crosshair';
+            userCanvas.style.cursor = 'crosshair';
         });
     </script>
 </body>
