@@ -202,6 +202,25 @@
         .ruler-cursor {
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="2" fill="black"/><rect x="4" y="9" width="2" height="6" fill="black"/><rect x="18" y="9" width="2" height="6" fill="black"/></svg>') 12 12, auto;
         }
+        
+        /* 拖放提示 */
+        .drop-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            border: 2px dashed #aaa;
+            display: none;
+        }
+        
+        /* 拖放时的高亮效果 */
+        .canvas-highlight {
+            border: 2px solid #5a4a3a;
+        }
     </style>
 </head>
 <body>
@@ -228,10 +247,10 @@
                 <div id="sketches-panel">
                     <h3>选择白描底稿</h3>
                     <div class="sketch-item" draggable="true">
-                        <img src="images/白描1.jpg" alt="白描1" data-src="images/白描1.jpg">
+                        <img src="https://placeholder.pics/svg/300x200/DEDEDE/555555/白描1" alt="白描1" data-src="https://placeholder.pics/svg/300x200/DEDEDE/555555/白描1">
                     </div>
                     <div class="sketch-item" draggable="true">
-                        <img src="images/白描2.jpg" alt="白描2" data-src="images/白描2.jpg">
+                        <img src="https://placeholder.pics/svg/300x200/DEDEDE/555555/白描2" alt="白描2" data-src="https://placeholder.pics/svg/300x200/DEDEDE/555555/白描2">
                     </div>
                 </div>
                 
@@ -240,6 +259,7 @@
                     <h3>绘画区域</h3>
                     <div id="canvas-container">
                         <canvas id="drawing-canvas"></canvas>
+                        <div class="drop-hint" id="drop-hint">拖放白描底稿到这里</div>
                     </div>
                     <div class="toolbar">
                         <button class="tool-btn" id="clear-btn">清空画布</button>
@@ -297,6 +317,8 @@
             const brushSize = document.getElementById('brush-size');
             const saveBtn = document.getElementById('save-btn');
             const sketchItems = document.querySelectorAll('.sketch-item');
+            const dropHint = document.getElementById('drop-hint');
+            const canvasContainer = document.getElementById('canvas-container');
             
             // 工具按钮
             const pencilBtn = document.getElementById('pencil-btn');
@@ -333,32 +355,32 @@
             let currentTool = 'pencil';
             let currentSketchImage = null;
             let sketchImageData = null;
+            let isRulerDrawing = false;
+            let rulerStartX = 0;
+            let rulerStartY = 0;
             
-            // 工具按钮点击事件
-            pencilBtn.addEventListener('click', function() {
-                setActiveTool('pencil');
-                canvas.classList.add('pencil-cursor');
-                canvas.classList.remove('brush-cursor', 'eraser-cursor', 'ruler-cursor');
-            });
-            
-            brushBtn.addEventListener('click', function() {
-                setActiveTool('brush');
-                canvas.classList.add('brush-cursor');
-                canvas.classList.remove('pencil-cursor', 'eraser-cursor', 'ruler-cursor');
-            });
-            
-            eraserBtn.addEventListener('click', function() {
-                setActiveTool('eraser');
-                canvas.classList.add('eraser-cursor');
-                canvas.classList.remove('pencil-cursor', 'brush-cursor', 'ruler-cursor');
-            });
-            
-            rulerBtn.addEventListener('click', function() {
-                setActiveTool('ruler');
-                canvas.classList.add('ruler-cursor');
-                canvas.classList.remove('pencil-cursor', 'brush-cursor', 'eraser-cursor');
-                alert('直尺工具: 点击起点和终点绘制直线');
-            });
+            // 工具按钮点击事件 - 修复工具切换问题
+            function setupToolButtons() {
+                pencilBtn.addEventListener('click', function() {
+                    setActiveTool('pencil');
+                    canvas.className = 'pencil-cursor';
+                });
+                
+                brushBtn.addEventListener('click', function() {
+                    setActiveTool('brush');
+                    canvas.className = 'brush-cursor';
+                });
+                
+                eraserBtn.addEventListener('click', function() {
+                    setActiveTool('eraser');
+                    canvas.className = 'eraser-cursor';
+                });
+                
+                rulerBtn.addEventListener('click', function() {
+                    setActiveTool('ruler');
+                    canvas.className = 'ruler-cursor';
+                });
+            }
             
             function setActiveTool(tool) {
                 currentTool = tool;
@@ -403,17 +425,17 @@
             canvas.addEventListener('mouseout', stopDrawing);
             
             function startDrawing(e) {
-                isDrawing = true;
-                [lastX, lastY] = [e.offsetX, e.offsetY];
-                
-                // 如果是直尺工具，只画直线
                 if (currentTool === 'ruler') {
-                    ctx.beginPath();
-                    ctx.moveTo(e.offsetX, e.offsetY);
+                    isRulerDrawing = true;
+                    rulerStartX = e.offsetX;
+                    rulerStartY = e.offsetY;
                     return;
                 }
                 
-                // 其他工具开始绘制
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+                
+                // 开始绘制点
                 ctx.beginPath();
                 ctx.arc(lastX, lastY, currentSize/2, 0, Math.PI * 2);
                 if (currentTool === 'eraser') {
@@ -425,19 +447,19 @@
             }
             
             function draw(e) {
-                if (!isDrawing) return;
-                
-                if (currentTool === 'ruler') {
+                if (currentTool === 'ruler' && isRulerDrawing) {
                     // 直尺工具 - 预览直线
                     redrawCanvas(); // 清除之前的预览
                     ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
+                    ctx.moveTo(rulerStartX, rulerStartY);
                     ctx.lineTo(e.offsetX, e.offsetY);
                     ctx.strokeStyle = currentColor;
                     ctx.lineWidth = currentSize;
                     ctx.stroke();
                     return;
                 }
+                
+                if (!isDrawing) return;
                 
                 // 其他工具绘制
                 ctx.beginPath();
@@ -467,10 +489,16 @@
             }
             
             function stopDrawing() {
+                if (currentTool === 'ruler' && isRulerDrawing) {
+                    // 完成直尺绘制
+                    isRulerDrawing = false;
+                    return;
+                }
+                
                 isDrawing = false;
             }
             
-            // 重绘画布（保留底图）
+            // 重绘画布（保留底图和用户绘制内容）
             function redrawCanvas() {
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -484,6 +512,7 @@
                 if (!currentSketchImage) return;
                 
                 const img = new Image();
+                img.crossOrigin = "Anonymous"; // 处理跨域问题
                 img.onload = function() {
                     // 计算图片尺寸以适应画布
                     let width = img.width;
@@ -545,35 +574,57 @@
                 canvas.dispatchEvent(mouseEvent);
             }
             
-            // 拖放功能 - 加载白描底图
-            sketchItems.forEach(item => {
-                item.addEventListener('dragstart', function(e) {
-                    e.dataTransfer.setData('text/plain', this.querySelector('img').dataset.src);
+            // 拖放功能 - 修复拖放问题
+            function setupDragAndDrop() {
+                sketchItems.forEach(item => {
+                    item.addEventListener('dragstart', function(e) {
+                        e.dataTransfer.setData('text/plain', this.querySelector('img').dataset.src);
+                        e.dataTransfer.effectAllowed = 'copy';
+                    });
                 });
-            });
-            
-            canvas.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
-            
-            canvas.addEventListener('drop', function(e) {
-                e.preventDefault();
-                const imageSrc = e.dataTransfer.getData('text/plain');
-                currentSketchImage = imageSrc;
-                loadSketchImage(imageSrc);
-            });
+                
+                canvasContainer.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    dropHint.style.display = 'block';
+                    canvasContainer.classList.add('canvas-highlight');
+                    e.dataTransfer.dropEffect = 'copy';
+                });
+                
+                canvasContainer.addEventListener('dragleave', function() {
+                    dropHint.style.display = 'none';
+                    canvasContainer.classList.remove('canvas-highlight');
+                });
+                
+                canvasContainer.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    dropHint.style.display = 'none';
+                    canvasContainer.classList.remove('canvas-highlight');
+                    
+                    const imageSrc = e.dataTransfer.getData('text/plain');
+                    if (imageSrc) {
+                        currentSketchImage = imageSrc;
+                        loadSketchImage(imageSrc);
+                    }
+                });
+            }
             
             function loadSketchImage(src) {
                 const img = new Image();
+                img.crossOrigin = "Anonymous"; // 处理跨域问题
                 img.onload = function() {
                     redrawCanvas();
+                };
+                img.onerror = function() {
+                    alert('图片加载失败，请检查图片路径');
                 };
                 img.src = src;
             }
             
-            // 初始化铅笔工具和光标
+            // 初始化
+            setupToolButtons();
+            setupDragAndDrop();
             setActiveTool('pencil');
-            canvas.classList.add('pencil-cursor');
+            canvas.className = 'pencil-cursor';
         });
     </script>
 </body>
